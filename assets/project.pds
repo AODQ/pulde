@@ -1,0 +1,71 @@
+
+project-name: "pulde",
+supported-languages: "CXX C",
+assets: {
+  compile-shaders: [
+    {
+      type: "render",
+      fragment-path: "shaders/pbr.frag",
+      vertex-path: "shaders/pbr.vert",
+    },
+  ],
+},
+entry-payload: {
+  platform: {
+    name: "Pulchritude glTF render",
+    width: 800,
+    height: 600,
+    vsync: "double",
+  },
+  gfx: {
+    initialize: true,
+    generate-window-depth-framebuffer: true,
+    render-graph-path: "assets/render-graph.pds",
+    debug: true,
+  },
+},
+build-info: {
+  applications: [ ],
+  plugins: [
+    {
+      name: "pulde",
+      path: "src",
+      known-files: [
+        "src/main.cpp",
+        "src/model.cpp",
+      ],
+      generated-hidden-files: [],
+      linked-libraries: [
+
+        "pulchritude-asset-font",
+        "pulchritude-asset-image",
+        "pulchritude-asset-pds",
+        "pulchritude-asset-shader-module",
+        "pulchritude-asset-shader-module",
+        "pulchritude-camera",
+        "pulchritude-gfx-debug",
+        "pulchritude-gpu",
+        "pulchritude-imgui",
+        "pulchritude-imgui-engine",
+        "pulchritude-render-graph",
+
+        "pulchritude-allocator",
+        "pulchritude-asset-pds",
+        "pulchritude-asset-script-task-graph",
+        "pulchritude-error",
+        "pulchritude-file",
+        "pulchritude-log",
+        "pulchritude-math",
+        "pulchritude-parser",
+        "pulchritude-platform",
+        "pulchritude-plugin",
+        "pulchritude-gpu-ir",
+        "pulchritude-script",
+        "pulchritude-string",
+        "pulchritude-text",
+        "pulchritude-time",
+      ],
+    },
+  ],
+},
+  

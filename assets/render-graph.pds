@@ -1,0 +1,98 @@
+render-graph: [
+  {
+    label: "draw",
+    resources: [
+      {
+        label: "framebuffer-image",
+        image: {
+          layout: "attachment-color",
+          access: "attachment-color-write",
+        },
+      },
+      {
+        label: "framebuffer-depth",
+        image: {
+          layout: "attachment-depth",
+          access: "attachment-depth-stencil-write",
+        },
+      },
+    ],
+    render-pass: {
+      attachments: [
+        {
+          image-color: "framebuffer-image",
+          op-load: "clear",
+          op-store: "store",
+          clear: [ 0.0, 0.0, 0.0, 1.0, ],
+        },
+        {
+          image-depth: "framebuffer-depth",
+          op-load: "clear",
+          op-store: "store",
+          clear: 1.0,
+        },
+      ],
+    },
+    depends-on: [],
+  },
+  {
+    label: "blit",
+    resources: [
+      {
+        label: "framebuffer-image",
+        image: {
+          layout: "transfer-src",
+          access: "transfer-read",
+        },
+      },
+      {
+        label: "window-swapchain-image",
+        image: {
+          layout: "transfer-dst",
+          access: "transfer-write",
+        },
+      },
+    ],
+    depends-on: ["draw",],
+  },
+],
+render-graph-resources: [
+  {
+    type: "image",
+    name: "framebuffer-image",
+    data-management: {
+      type: "automatic",
+      render-graph-usage: "read-write",
+      is-attachment: true,
+      scale-dimensions-relative: {
+        reference-image: "window-swapchain-image",
+        scale-width: 1.0,
+        scale-height: 1.0,
+      },
+      initial-data: "",
+      target: "2d",
+      byte-format: "rgba8u",
+      mipmap-levels: 1,
+      array-layers: 1,
+    },
+  },
+  {
+    type: "image",
+    name: "framebuffer-depth",
+    data-management: {
+      type: "automatic",
+      render-graph-usage: "read-write",
+      is-attachment: true,
+      scale-dimensions-relative: {
+        reference-image: "window-swapchain-image",
+        scale-width: 1.0,
+        scale-height: 1.0,
+      },
+      initial-data: "",
+      target: "2d",
+      byte-format: "depth16",
+      mipmap-levels: 1,
+      array-layers: 1,
+    },
+  },
+],
