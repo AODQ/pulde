@@ -1085,7 +1085,6 @@ void pulcComponentLoad([[maybe_unused]] PulePluginPayload const payload) {
 
   camera = puleCameraCreate();
 
-
   // try to generate material
   PuleGpuIr_Pipeline pipeline = (
     puleGpuIr_pipeline(
@@ -1122,23 +1121,72 @@ void pulcComponentLoad([[maybe_unused]] PulePluginPayload const payload) {
     )
   );
 
-  PuleGpuIr_Value vertLabel = puleGpuIr_opLabel(vert, "main"_psv);
-
   // types / variables / constants
+  PuleGpuIr_Type tVoid = puleGpuIr_opTypeVoid(vert);
   PuleGpuIr_Type tFloat = puleGpuIr_opTypeFloat(vert, 32);
   PuleGpuIr_Type tFloat3 = puleGpuIr_opTypeVector(vert, tFloat, 3);
+  PuleGpuIr_Type tFloat4 = puleGpuIr_opTypeVector(vert, tFloat, 4);
   PuleGpuIr_Type tFloat3Iattr = (
     puleGpuIr_opTypePointer(vert, tFloat3, PuleGpuIr_StorageClass_input)
   );
+  PuleGpuIr_Type tFloat4Oattr = (
+    puleGpuIr_opTypePointer(vert, tFloat4, PuleGpuIr_StorageClass_output)
+  );
+  PuleGpuIr_Type tFnVert = puleGpuIr_opTypeFunction(vert, tVoid, nullptr, 0);
+  puleLogDev("tFnVert: %d", tFnVert.id);
+
+  // entry point
+  PuleGpuIr_Value vertMain = (
+    puleGpuIr_opFunction(
+      vert, tVoid, PuleGpuIr_FunctionControl_none, tFnVert,
+      "main"_psv
+    )
+  );
+  PuleGpuIr_Value vertLabel = puleGpuIr_opLabel(vert);
+
   PuleGpuIr_Value inPos = (
-    puleGpuIr_opVariable(vert, tFloat3Iattr, PuleGpuIr_StorageClass_input)
+    puleGpuIr_opVariableStorage(
+      vert, tFloat3Iattr, PuleGpuIr_StorageClass_input, 0
+    )
+  );
+  PuleGpuIr_Value outPos = (
+    puleGpuIr_opVariableStorage(
+      vert, tFloat4Oattr, PuleGpuIr_StorageClass_output, 0
+    )
   );
 
   // main function
   // TODO function
   PuleGpuIr_Value pos = puleGpuIr_opLoad(vert, tFloat3, inPos);
+  PuleGpuIr_Value pos1 = puleGpuIr_opCompositeExtract(vert, tFloat, pos, 0);
+  PuleGpuIr_Value pos2 = puleGpuIr_opCompositeExtract(vert, tFloat, pos, 1);
+  PuleGpuIr_Value pos3 = puleGpuIr_opCompositeExtract(vert, tFloat, pos, 2);
+  std::vector<PuleGpuIr_Value> args;
+  args = {
+    pos1, pos2, pos3,
+    puleGpuIr_opConstant(
+      vert, tFloat, PuleGpuIr_ConstantType_float,
+      { .floating = 1.0f, }
+    )
+  };
+  PuleGpuIr_Value p4 = (
+    puleGpuIr_opCompositeConstruct(
+      vert,
+      tFloat4,
+      args.data(),
+      args.size()
+    )
+  );
+
+  PuleGpuIr_Value np4 = (
+    puleGpuIr_opExtInst(vert, tFloat4, "Normalize"_psv, &p4, 1
+    )
+  );
 
   puleGpuIr_opReturn(vert);
+  puleGpuIr_opFunctionEnd(vert);
+
+  puleGpuIr_pipelineCompile(pipeline);
 
   exit(0);
 

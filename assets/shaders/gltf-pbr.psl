@@ -1,0 +1,103 @@
+
+
+@vertfn pbrVert @const(
+  hasTexture : bool,
+  hasNormals : bool,
+  hasColors : bool,
+  hasBaseColor : bool,
+) @in {
+  @in(location = 0) inOrigin : vec3;
+
+  @constif (hasTexture) {
+    @in(location = 1) inUv : vec2;
+    @out(location = 0) outUv : vec2;
+  }
+
+  @constif (hasNormals) {
+    @in(location = 2) inNormal : vec3;
+    @out(location = 1) outNormal : vec3;
+  }
+
+  @constif (hasColors) {
+    @in(location = 3) inColor : vec4;
+    @out(location = 2) outColor : vec4;
+  }
+
+  @constif (hasBaseColor) {
+    @out(location = 3) outBaseColor : vec4;
+  }
+
+  @constif (hasBaseColor) {
+    @pushConstant {
+      cameraViewProj : mat4;
+      transform : mat4;
+    };
+  } else {
+    @pushConstant {
+      cameraViewProj : mat4;
+      transform : mat4;
+      baseColor : vec4;
+    };
+  }
+
+  @gl_Position outOrigin : vec4;
+}
+@main {
+  outOrigin = cameraViewProj * transform * vec4(inOrigin, 1.0);
+  @constif (hasTexture) {
+    outUv = inUv;
+  }
+  @constif (hasNormals) {
+    outNormal = innormal;
+  }
+  @constif (hasColors) {
+    inColor = outColor;
+  }
+  @constif (hasBaseColor) {
+    outBaseColor = baseColor;
+  }
+}
+
+@fragfn pbrFrag @const(
+  hasTexture : bool,
+  hasNormals : bool,
+  hasColors : bool,
+  hasBaseColor : bool,
+) @in {
+  @constif (hasTexture) {
+    @in(location = 0) inUv : vec2;
+    @resource(set = 0, binding = 0) baseColor;
+  }
+  @constif (hasNormals) {
+    @in(location = 1) inNormal : vec3;
+  }
+  @constif (hasColors) {
+    @in(location = 2) inColor : vec4;
+  }
+  @constif (hasBaseColor) {
+    @in(location = 3) inBaseColor : vec4;
+  }
+
+  @out(location = 0) outColor : vec4;
+}
+@main {
+  vec4 color = vec4(1.0);
+  @constif (hasNormals) {
+    color = vec4(inNormal, 1.0);
+  }
+  @constif (hasTexture) {
+    color = texture(baseCor, inUv);
+  }
+  @constif (hasColors) {
+    color *= inColor;
+  }
+  @constif (hasBaseColor) {
+    color *= inBaseColor;
+  }
+  @constif (hasNormals) {
+    vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+    outColor.rgb *= max(dot(inNormal, lightDir), 0.5);
+    outColor.rgb *= max(dot(inNormal, -lightDir), 0.5);
+    outColor.rgb = pow(outColor.rgb, vec3(1.0/2.2));
+  }
+}
